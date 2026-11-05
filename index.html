@@ -1060,7 +1060,7 @@
             return san;
         }
 
-        // Artificial Intelligence Engine (Minimax with Alpha-Beta Pruning)
+       // Artificial Intelligence Engine (Minimax with Alpha-Beta Pruning)
         function makeAIMove() {
             if (!gameActive) return;
 
@@ -1087,7 +1087,7 @@
         }
 
         function getBestMoveMinimax(depth) {
-            let bestMove = null;
+            let bestMoves = [];
             let bestValue = -Infinity;
             const moves = getLegalMoves('b');
 
@@ -1101,7 +1101,9 @@
                 board[move.to] = origFrom;
                 board[move.from] = null;
 
-                const boardValue = minimax(depth - 1, -Infinity, Infinity, false);
+                // Add slight random variance (+/- 5 points) during the first 4 moves of the game
+                const noise = (history.length < 8) ? (Math.random() * 10 - 5) : 0;
+                const boardValue = minimax(depth - 1, -Infinity, Infinity, false) + noise;
 
                 // Undo
                 board[move.from] = origFrom;
@@ -1109,11 +1111,14 @@
 
                 if (boardValue > bestValue) {
                     bestValue = boardValue;
-                    bestMove = move;
+                    bestMoves = [move]; // Reset with new best move
+                } else if (Math.abs(boardValue - bestValue) < 0.001) {
+                    bestMoves.push(move); // Collect tied moves
                 }
             }
 
-            return bestMove || moves[Math.floor(Math.random() * moves.length)];
+            // Pick a random move among the top tied candidates
+            return bestMoves[Math.floor(Math.random() * bestMoves.length)] || moves[Math.floor(Math.random() * moves.length)];
         }
 
         function minimax(depth, alpha, beta, isMaximizing) {
